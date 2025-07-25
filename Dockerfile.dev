@@ -1,0 +1,40 @@
+# Android Development Environment for Nextcloud Talk Enhanced
+FROM openjdk:17-jdk-slim
+
+# Установка зависимостей
+RUN apt-get update && apt-get install -y \
+    wget \
+    unzip \
+    git \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Создание пользователя
+RUN useradd -m -s /bin/bash developer
+USER developer
+WORKDIR /home/developer
+
+# Установка Android SDK
+ENV ANDROID_HOME=/home/developer/android-sdk
+ENV PATH=$PATH:$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools
+
+# Скачивание и установка Android Command Line Tools
+RUN mkdir -p $ANDROID_HOME/cmdline-tools && \
+    cd $ANDROID_HOME/cmdline-tools && \
+    wget -q https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip && \
+    unzip -q commandlinetools-linux-11076708_latest.zip && \
+    mv cmdline-tools latest && \
+    rm commandlinetools-linux-11076708_latest.zip
+
+# Принятие лицензий и установка необходимых компонентов
+RUN yes | sdkmanager --licenses && \
+    sdkmanager "platform-tools" "platforms;android-35" "build-tools;35.0.0"
+
+# Копируем проект
+COPY --chown=developer:developer . /home/developer/project
+WORKDIR /home/developer/project
+
+# Делаем gradlew исполняемым
+RUN chmod +x ./gradlew
+
+CMD ["bash"]

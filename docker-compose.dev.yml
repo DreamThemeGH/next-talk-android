@@ -1,0 +1,24 @@
+version: '3.8'
+
+services:
+  nextcloud-talk-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: nextcloud-talk-enhanced-dev
+    volumes:
+      # Монтируем исходный код для live-разработки
+      - .:/home/developer/project
+      # Кеш Gradle для ускорения сборки
+      - gradle-cache:/home/developer/.gradle
+    working_dir: /home/developer/project
+    environment:
+      - GRADLE_OPTS=-Dorg.gradle.daemon=false -Dorg.gradle.parallel=true
+      - ANDROID_HOME=/home/developer/android-sdk
+      - ANDROID_SDK_ROOT=/home/developer/android-sdk
+    stdin_open: true
+    tty: true
+    command: bash
+
+volumes:
+  gradle-cache:
