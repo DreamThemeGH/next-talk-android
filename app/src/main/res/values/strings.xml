@@ -142,6 +142,8 @@ How to translate with transifex:
     <string name="nc_settings_theme_battery_saver">Set by battery saver</string>
     <string name="nc_settings_theme_light">Light</string>
     <string name="nc_settings_theme_dark">Dark</string>
+    <string name="nc_settings_dynamic_colors_title">Dynamic Colors</string>
+    <string name="nc_settings_dynamic_colors_summary">Adapt app colors to your device wallpaper (Android 12+)</string>
     <string name="nc_settings_privacy">Privacy</string>
     <string name="nc_settings_screen_lock_title">Screen lock</string>
     <string name="nc_settings_screen_lock_desc">Lock %1$s with Android screen lock or supported biometric method</string>

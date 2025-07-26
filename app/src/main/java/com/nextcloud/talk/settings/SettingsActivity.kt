@@ -24,6 +24,7 @@ import android.media.RingtoneManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.preference.PreferenceManager
 import android.provider.Settings
 import android.security.KeyChain
 import android.text.TextUtils
@@ -43,6 +44,7 @@ import androidx.work.OneTimeWorkRequest
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import autodagger.AutoInjector
+import com.google.android.material.color.DynamicColors
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.textfield.TextInputLayout
@@ -1099,6 +1101,8 @@ class SettingsActivity :
             binding.settingsTypingStatusSwitch.isChecked = !isChecked
             appPreferences.setTypingStatus(!isChecked)
         }
+        
+        setupDynamicColorsSettings()
     }
 
     private fun setupPhoneBookIntegrationSetting() {
@@ -1378,6 +1382,45 @@ class SettingsActivity :
                     state = newString
                     setAppTheme(newString)
                 }
+            }
+        }
+    }
+
+    private fun setupDynamicColorsSettings() {
+        // Only show Dynamic Colors option on Android 12+ where it's supported
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && DynamicColors.isDynamicColorAvailable()) {
+            binding.settingsDynamicColorsWrapper.visibility = View.VISIBLE
+            val prefs = PreferenceManager.getDefaultSharedPreferences(this)
+            binding.settingsDynamicColorsSwitch.isChecked = 
+                prefs.getBoolean(NotificationUtils.PREF_USE_DYNAMIC_COLORS, false)
+            
+            binding.settingsDynamicColorsWrapper.setOnClickListener {
+                val isChecked = binding.settingsDynamicColorsSwitch.isChecked
+                binding.settingsDynamicColorsSwitch.isChecked = !isChecked
+                prefs.edit()
+                    .putBoolean(NotificationUtils.PREF_USE_DYNAMIC_COLORS, !isChecked)
+                    .apply()
+                applyDynamicColorsIfEnabled()
+                
+                // Show snackbar to inform user about restart requirement
+                Snackbar.make(
+                    binding.root,
+                    "Restart the app to apply Dynamic Colors changes",
+                    Snackbar.LENGTH_LONG
+                ).show()
+            }
+        } else {
+            binding.settingsDynamicColorsWrapper.visibility = View.GONE
+        }
+    }
+
+    private fun applyDynamicColorsIfEnabled() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && 
+            DynamicColors.isDynamicColorAvailable()) {
+            val prefs = PreferenceManager.getDefaultSharedPreferences(this)
+            val useDynamicColors = prefs.getBoolean(NotificationUtils.PREF_USE_DYNAMIC_COLORS, false)
+            if (useDynamicColors) {
+                DynamicColors.applyToActivityIfAvailable(this)
             }
         }
     }

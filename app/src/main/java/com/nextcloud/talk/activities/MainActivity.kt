@@ -11,7 +11,9 @@ package com.nextcloud.talk.activities
 
 import android.app.KeyguardManager
 import android.content.Intent
+import android.os.Build
 import android.os.Bundle
+import android.preference.PreferenceManager
 import android.provider.ContactsContract
 import android.text.TextUtils
 import android.util.Log
@@ -21,6 +23,7 @@ import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ProcessLifecycleOwner
 import autodagger.AutoInjector
+import com.google.android.material.color.DynamicColors
 import com.google.android.material.snackbar.Snackbar
 import com.nextcloud.talk.R
 import com.nextcloud.talk.account.BrowserLoginActivity
@@ -79,7 +82,7 @@ class MainActivity :
         })
 
         // Set the default theme to replace the launch screen theme.
-        setTheme(R.style.AppTheme)
+        applyDynamicTheme()
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
@@ -296,6 +299,30 @@ class MainActivity :
                     ).show()
                 }
             })
+        }
+    }
+    
+    /**
+     * Apply dynamic theme based on Android version and user preferences
+     * Material 3 Dynamic Colors for Android 12+ with fallback
+     */
+    private fun applyDynamicTheme() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && DynamicColors.isDynamicColorAvailable()) {
+            // Check if user has enabled dynamic colors
+            val prefs = PreferenceManager.getDefaultSharedPreferences(this)
+            val useDynamicColors = prefs.getBoolean(NotificationUtils.PREF_USE_DYNAMIC_COLORS, false)
+            
+            if (useDynamicColors) {
+                Log.d(TAG, "Applying dynamic colors theme (Android 12+)")
+                setTheme(R.style.AppTheme_DynamicColors)
+                DynamicColors.applyToActivityIfAvailable(this)
+            } else {
+                Log.d(TAG, "Dynamic colors disabled by user, using standard theme")
+                setTheme(R.style.AppTheme)
+            }
+        } else {
+            Log.d(TAG, "Dynamic colors not available, using standard Material 3 theme")
+            setTheme(R.style.AppTheme)
         }
     }
 

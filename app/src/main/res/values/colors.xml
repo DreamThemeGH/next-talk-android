@@ -96,4 +96,34 @@
     <color name="badge_color">#EF3B02</color>
     <color name="secondary_button_background">#DBE2E9</color>
 
+    <!-- Material 3 Color System -->
+    <!-- Primary Colors -->
+    <color name="nc_primary_container">#CCE7FF</color>
+    <color name="nc_on_primary_container">#001E30</color>
+    
+    <!-- Secondary Colors -->
+    <color name="nc_secondary">#526070</color>
+    <color name="nc_secondary_container">#D5E4F7</color>
+    <color name="nc_on_secondary_container">#0F1D2A</color>
+    
+    <!-- Tertiary Colors -->
+    <color name="nc_tertiary">#675779</color>
+    <color name="nc_tertiary_container">#EEDBFF</color>
+    <color name="nc_on_tertiary_container">#221533</color>
+    
+    <!-- Surface Colors -->
+    <color name="nc_surface">#FAFCFF</color>
+    <color name="nc_on_surface">#191C20</color>
+    <color name="nc_surface_variant">#DEE3EA</color>
+    <color name="nc_on_surface_variant">#42474E</color>
+    
+    <!-- Outline Colors -->
+    <color name="nc_outline">#72787E</color>
+    <color name="nc_outline_variant">#C2C8CE</color>
+    
+    <!-- Error Colors -->
+    <color name="nc_error">#BA1A1A</color>
+    <color name="nc_error_container">#FFDAD6</color>
+    <color name="nc_on_error_container">#410002</color>
+
 </resources>

@@ -56,11 +56,14 @@ object NotificationUtils {
     const val KEY_UPLOAD_GROUP = "com.nextcloud.talk.utils.KEY_UPLOAD_GROUP"
     const val GROUP_SUMMARY_NOTIFICATION_ID = -1
     
-    // Smart notification preferences (like WhatsApp)
+    // Smart notification preferences (modern messaging apps style)
     const val PREF_SMART_GROUPING_ENABLED = "smart_grouping_enabled"
     const val PREF_REPEAT_NOTIFICATIONS = "repeat_notifications_enabled"
     const val PREF_GROUPING_TIMEOUT_MINUTES = "grouping_timeout_minutes"
     const val DEFAULT_GROUPING_TIMEOUT_MINUTES = 3 // 3 minutes default
+    
+    // Theme preferences
+    const val PREF_USE_DYNAMIC_COLORS = "use_dynamic_colors"
 
     private fun createNotificationChannel(
         context: Context,
