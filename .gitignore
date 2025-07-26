@@ -47,6 +47,9 @@ captures/
 .navigation/
 app/gplay/
 
+# Temporary folders for development
+graphics-for-designer/
+
 # IDEA/Android Studio project settings ignore exceptions
 !.idea/icon.svg
 !.idea/icon.png
