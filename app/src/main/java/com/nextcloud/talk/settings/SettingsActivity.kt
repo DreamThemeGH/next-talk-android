@@ -529,12 +529,14 @@ class SettingsActivity :
         }
 
         // Setup grouping timeout dropdown
-        val timeoutValues = arrayOf("1", "3", "5", "10")
+        val timeoutValues = arrayOf("1", "3", "5", "10", "30", "60")
         val timeoutLabels = arrayOf(
             getString(R.string.nc_settings_grouping_timeout_1_min),
             getString(R.string.nc_settings_grouping_timeout_3_min),
             getString(R.string.nc_settings_grouping_timeout_5_min),
-            getString(R.string.nc_settings_grouping_timeout_10_min)
+            getString(R.string.nc_settings_grouping_timeout_10_min),
+            getString(R.string.nc_settings_grouping_timeout_30_min),
+            getString(R.string.nc_settings_grouping_timeout_1_hour)
         )
 
         val currentTimeout = prefs.getInt(NotificationUtils.PREF_GROUPING_TIMEOUT_MINUTES,

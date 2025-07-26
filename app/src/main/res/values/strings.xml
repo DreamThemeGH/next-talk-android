@@ -119,16 +119,18 @@ How to translate with transifex:
 
     <!-- Smart notification settings -->
     <string name="nc_settings_smart_notifications_title">Smart Notifications</string>
-    <string name="nc_settings_smart_grouping_title">Smart grouping</string>
-    <string name="nc_settings_smart_grouping_description">Group notifications like WhatsApp - silence subsequent messages for a few minutes</string>
+    <string name="nc_settings_smart_grouping_title">Smart notification grouping</string>
+    <string name="nc_settings_smart_grouping_description">When enabled: Only first message in conversation plays sound. Subsequent messages are silent for selected timeout period. When disabled: Every message plays sound immediately.</string>
     <string name="nc_settings_repeat_notifications_title">Repeat notifications</string>
     <string name="nc_settings_repeat_notifications_description">Show reminder notifications for unread messages</string>
-    <string name="nc_settings_grouping_timeout_title">Grouping timeout</string>
-    <string name="nc_settings_grouping_timeout_description">How long to group notifications before playing sound again</string>
+    <string name="nc_settings_grouping_timeout_title">Silent period duration</string>
+    <string name="nc_settings_grouping_timeout_description">How long to keep subsequent messages silent after first notification</string>
     <string name="nc_settings_grouping_timeout_1_min">1 minute</string>
     <string name="nc_settings_grouping_timeout_3_min">3 minutes</string>
     <string name="nc_settings_grouping_timeout_5_min">5 minutes</string>
     <string name="nc_settings_grouping_timeout_10_min">10 minutes</string>
+    <string name="nc_settings_grouping_timeout_30_min">30 minutes</string>
+    <string name="nc_settings_grouping_timeout_1_hour">1 hour</string>
 
     <string name="nc_settings_appearance">Appearance</string>
     <string name="nc_settings_theme_title">Theme</string>

@@ -60,7 +60,7 @@ object NotificationUtils {
     const val PREF_SMART_GROUPING_ENABLED = "smart_grouping_enabled"
     const val PREF_REPEAT_NOTIFICATIONS = "repeat_notifications_enabled"
     const val PREF_GROUPING_TIMEOUT_MINUTES = "grouping_timeout_minutes"
-    const val DEFAULT_GROUPING_TIMEOUT_MINUTES = 3 // 3 minutes like WhatsApp
+    const val DEFAULT_GROUPING_TIMEOUT_MINUTES = 3 // 3 minutes default
 
     private fun createNotificationChannel(
         context: Context,

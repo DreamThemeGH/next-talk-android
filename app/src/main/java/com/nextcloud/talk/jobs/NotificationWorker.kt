@@ -555,9 +555,41 @@ class NotificationWorker(context: Context, workerParams: WorkerParameters) : Wor
             addReplyAction(notificationBuilder, systemNotificationId)
             addMarkAsReadAction(notificationBuilder, systemNotificationId)
             
-            // ПРОСТОЕ РЕШЕНИЕ: всегда играть звук для каждого сообщения
-            notificationBuilder.setOnlyAlertOnce(false) // Всегда показывать уведомление со звуком
-            notificationBuilder.setDefaults(NotificationCompat.DEFAULT_SOUND or NotificationCompat.DEFAULT_VIBRATE)
+            // Smart notification grouping (WhatsApp-style)
+            val prefs = androidx.preference.PreferenceManager.getDefaultSharedPreferences(context!!)
+            val smartGroupingEnabled = prefs.getBoolean(NotificationUtils.PREF_SMART_GROUPING_ENABLED, true)
+            
+            if (smartGroupingEnabled) {
+                // SMART GROUPING MODE: Only first message in conversation plays sound
+                // Subsequent messages are silent for configured timeout period
+                val conversationToken = pushMessage.id ?: ""
+                val shouldPlaySound = shouldPlaySoundForConversation(conversationToken)
+                
+                if (shouldPlaySound) {
+                    // First message or timeout expired - play sound
+                    notificationBuilder.setOnlyAlertOnce(false)
+                    notificationBuilder.setDefaults(NotificationCompat.DEFAULT_SOUND or NotificationCompat.DEFAULT_VIBRATE)
+                    Log.d(TAG, "Playing sound for conversation: $conversationToken (smart grouping - first/timeout)")
+                    
+                    // Mark that we played sound for this conversation
+                    markSoundPlayedForConversation(conversationToken)
+                } else {
+                    // Within timeout period - silent notification
+                    notificationBuilder.setOnlyAlertOnce(true)
+                    notificationBuilder.setDefaults(0)
+                    Log.d(TAG, "Silent notification for conversation: $conversationToken (smart grouping - within timeout)")
+                }
+            } else {
+                // ENHANCED MODE: Every message plays sound immediately
+                // Each notification gets unique group to prevent Android from grouping them
+                val uniqueGroup = "talk_msg_${System.currentTimeMillis()}_${pushMessage.timestamp}"
+                notificationBuilder.setGroup(uniqueGroup)
+                notificationBuilder.setOnlyAlertOnce(false)
+                notificationBuilder.setDefaults(NotificationCompat.DEFAULT_SOUND or NotificationCompat.DEFAULT_VIBRATE)
+                Log.d(TAG, "Playing sound for every message (enhanced mode - no grouping)")
+            }
+            
+            Log.d(TAG, "Smart grouping enabled: $smartGroupingEnabled")
             
             Log.d(TAG, "Forced sound for message notification")
         }
@@ -1054,6 +1086,30 @@ class NotificationWorker(context: Context, workerParams: WorkerParameters) : Wor
             0
         }
         return PendingIntent.getActivity(context, requestCode, intent, intentFlag)
+    }
+
+    /**
+     * Smart notification grouping helper methods for WhatsApp-style behavior
+     */
+    private fun shouldPlaySoundForConversation(conversationToken: String): Boolean {
+        val prefs = androidx.preference.PreferenceManager.getDefaultSharedPreferences(context!!)
+        val timeoutMinutes = prefs.getInt(NotificationUtils.PREF_GROUPING_TIMEOUT_MINUTES, 5)
+        val lastSoundKey = "last_sound_${conversationToken}"
+        val lastSoundTime = prefs.getLong(lastSoundKey, 0)
+        val currentTime = System.currentTimeMillis()
+        val timeoutMs = timeoutMinutes * 60 * 1000L
+        
+        val shouldPlay = (currentTime - lastSoundTime) > timeoutMs
+        Log.d(TAG, "shouldPlaySoundForConversation: $conversationToken, lastSound: $lastSoundTime, current: $currentTime, timeout: ${timeoutMs}ms, shouldPlay: $shouldPlay")
+        return shouldPlay
+    }
+
+    private fun markSoundPlayedForConversation(conversationToken: String) {
+        val prefs = androidx.preference.PreferenceManager.getDefaultSharedPreferences(context!!)
+        val lastSoundKey = "last_sound_${conversationToken}"
+        val currentTime = System.currentTimeMillis()
+        prefs.edit().putLong(lastSoundKey, currentTime).apply()
+        Log.d(TAG, "markSoundPlayedForConversation: $conversationToken at $currentTime")
     }
 
     companion object {
