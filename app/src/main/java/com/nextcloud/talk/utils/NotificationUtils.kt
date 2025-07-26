@@ -14,6 +14,7 @@ import android.content.Context
 import android.graphics.drawable.BitmapDrawable
 import android.media.AudioAttributes
 import android.net.Uri
+import android.os.Build
 import android.service.notification.StatusBarNotification
 import android.text.TextUtils
 import android.util.Log
@@ -54,6 +55,12 @@ object NotificationUtils {
     // notification group keys
     const val KEY_UPLOAD_GROUP = "com.nextcloud.talk.utils.KEY_UPLOAD_GROUP"
     const val GROUP_SUMMARY_NOTIFICATION_ID = -1
+    
+    // Smart notification preferences (like WhatsApp)
+    const val PREF_SMART_GROUPING_ENABLED = "smart_grouping_enabled"
+    const val PREF_REPEAT_NOTIFICATIONS = "repeat_notifications_enabled"
+    const val PREF_GROUPING_TIMEOUT_MINUTES = "grouping_timeout_minutes"
+    const val DEFAULT_GROUPING_TIMEOUT_MINUTES = 3 // 3 minutes like WhatsApp
 
     private fun createNotificationChannel(
         context: Context,
@@ -148,6 +155,27 @@ object NotificationUtils {
         createCallsNotificationChannel(context, appPreferences)
         createMessagesNotificationChannel(context, appPreferences)
         createUploadsNotificationChannel(context)
+        
+        // Initialize smart notification preferences (like WhatsApp)
+        initializeSmartNotificationPreferences(context)
+    }
+    
+    /**
+     * Initialize smart notification preferences with defaults
+     */
+    private fun initializeSmartNotificationPreferences(context: Context) {
+        val prefs = androidx.preference.PreferenceManager.getDefaultSharedPreferences(context)
+        
+        // Set default values if not already set
+        if (!prefs.contains(PREF_SMART_GROUPING_ENABLED)) {
+            prefs.edit()
+                .putBoolean(PREF_SMART_GROUPING_ENABLED, true) // Enable smart grouping by default
+                .putBoolean(PREF_REPEAT_NOTIFICATIONS, true) // Enable repeat notifications
+                .putInt(PREF_GROUPING_TIMEOUT_MINUTES, DEFAULT_GROUPING_TIMEOUT_MINUTES)
+                .apply()
+            
+            Log.d(TAG, "Initialized smart notification preferences with defaults")
+        }
     }
 
     fun removeOldNotificationChannels(context: Context) {
@@ -340,6 +368,77 @@ object NotificationUtils {
         context.imageLoader.executeBlocking(request)
 
         return avatarIcon
+    }
+    
+    /**
+     * Smart notification grouping like WhatsApp
+     * Checks if we should play sound based on grouping preferences
+     */
+    fun shouldPlaySoundForMessage(context: Context, conversationToken: String): Boolean {
+        val prefs = androidx.preference.PreferenceManager.getDefaultSharedPreferences(context)
+        
+        // If smart grouping is disabled, always play sound
+        if (!prefs.getBoolean(PREF_SMART_GROUPING_ENABLED, true)) {
+            return true
+        }
+        
+        // Get last notification time for this conversation
+        val lastNotificationTime = getLastNotificationTime(context, conversationToken)
+        val currentTime = System.currentTimeMillis()
+        val groupingTimeout = prefs.getInt(PREF_GROUPING_TIMEOUT_MINUTES, DEFAULT_GROUPING_TIMEOUT_MINUTES)
+        val timeoutMs = groupingTimeout * 60 * 1000L
+        
+        // If enough time has passed, play sound
+        val shouldPlay = (currentTime - lastNotificationTime) > timeoutMs
+        
+        // Update last notification time
+        updateLastNotificationTime(context, conversationToken, currentTime)
+        
+        Log.d(TAG, "Smart grouping for $conversationToken: shouldPlay=$shouldPlay, timeSince=${currentTime - lastNotificationTime}ms, timeout=${timeoutMs}ms")
+        
+        return shouldPlay
+    }
+    
+    /**
+     * Check if we should show notification as ongoing (has unread messages)
+     */
+    fun hasUnreadMessages(context: Context, conversationToken: String): Boolean {
+        val prefs = context.getSharedPreferences("unread_messages", Context.MODE_PRIVATE)
+        return prefs.getBoolean("${conversationToken}_has_unread", false)
+    }
+    
+    /**
+     * Mark conversation as having unread messages
+     */
+    fun markConversationAsUnread(context: Context, conversationToken: String) {
+        val prefs = context.getSharedPreferences("unread_messages", Context.MODE_PRIVATE)
+        prefs.edit()
+            .putBoolean("${conversationToken}_has_unread", true)
+            .putLong("${conversationToken}_unread_since", System.currentTimeMillis())
+            .apply()
+    }
+    
+    /**
+     * Mark conversation as read
+     */
+    fun markConversationAsRead(context: Context, conversationToken: String) {
+        val prefs = context.getSharedPreferences("unread_messages", Context.MODE_PRIVATE)
+        prefs.edit()
+            .putBoolean("${conversationToken}_has_unread", false)
+            .remove("${conversationToken}_unread_since")
+            .apply()
+    }
+    
+    private fun getLastNotificationTime(context: Context, conversationToken: String): Long {
+        val prefs = context.getSharedPreferences("notification_timing", Context.MODE_PRIVATE)
+        return prefs.getLong("${conversationToken}_last_notification", 0L)
+    }
+    
+    private fun updateLastNotificationTime(context: Context, conversationToken: String, timestamp: Long) {
+        val prefs = context.getSharedPreferences("notification_timing", Context.MODE_PRIVATE)
+        prefs.edit()
+            .putLong("${conversationToken}_last_notification", timestamp)
+            .apply()
     }
 
     private data class Channel(val id: String, val name: String, val description: String, val isImportant: Boolean)

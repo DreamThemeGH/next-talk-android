@@ -405,10 +405,23 @@ class NotificationWorker(context: Context, workerParams: WorkerParameters) : Wor
 
                 override fun onError(e: Throwable) {
                     Log.e(TAG, "Failed to get NC notification", e)
+                    Log.e(TAG, "Notification ID: ${pushMessage.notificationId}")
+                    Log.e(TAG, "User: ${signatureVerification.user?.baseUrl}")
+                    Log.e(TAG, "Error type: ${e.javaClass.simpleName}")
+                    Log.e(TAG, "Error message: ${e.message}")
+                    
                     if (BuildConfig.DEBUG) {
                         Handler(Looper.getMainLooper()).post {
-                            Toast.makeText(context, "Failed to get NC notification", Toast.LENGTH_LONG).show()
+                            Toast.makeText(context, "Failed to get NC notification: ${e.message}", Toast.LENGTH_LONG).show()
                         }
+                    }
+                    
+                    // Try to show notification anyway without NC data
+                    try {
+                        showNotification(intent, null)
+                        Log.d(TAG, "Showed notification without NC data as fallback")
+                    } catch (fallbackError: Exception) {
+                        Log.e(TAG, "Failed to show fallback notification", fallbackError)
                     }
                 }
 
@@ -479,6 +492,14 @@ class NotificationWorker(context: Context, workerParams: WorkerParameters) : Wor
         intent: Intent,
         ncNotification: com.nextcloud.talk.models.json.notifications.Notification?
     ) {
+        // Ensure notification channels exist before creating notifications
+        try {
+            NotificationUtils.registerNotificationChannels(context!!, appPreferences)
+            Log.d(TAG, "Notification channels verified")
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to ensure notification channels exist", e)
+        }
+        
         var category = ""
         when (pushMessage.type) {
             TYPE_CHAT, TYPE_ROOM, TYPE_RECORDING, TYPE_REMINDER, TYPE_ADMIN_NOTIFICATIONS, TYPE_REMOTE_TALK_SHARE ->
@@ -533,12 +554,19 @@ class NotificationWorker(context: Context, workerParams: WorkerParameters) : Wor
             prepareChatNotification(notificationBuilder, activeStatusBarNotification, systemNotificationId)
             addReplyAction(notificationBuilder, systemNotificationId)
             addMarkAsReadAction(notificationBuilder, systemNotificationId)
+            
+            // ПРОСТОЕ РЕШЕНИЕ: всегда играть звук для каждого сообщения
+            notificationBuilder.setOnlyAlertOnce(false) // Всегда показывать уведомление со звуком
+            notificationBuilder.setDefaults(NotificationCompat.DEFAULT_SOUND or NotificationCompat.DEFAULT_VIBRATE)
+            
+            Log.d(TAG, "Forced sound for message notification")
         }
 
         if (TYPE_RECORDING == pushMessage.type && ncNotification != null) {
             addDismissRecordingAvailableAction(notificationBuilder, systemNotificationId, ncNotification)
             addShareRecordingToChatAction(notificationBuilder, systemNotificationId, ncNotification)
         }
+        
         sendNotification(systemNotificationId, notificationBuilder.build())
     }
 
@@ -550,7 +578,17 @@ class NotificationWorker(context: Context, workerParams: WorkerParameters) : Wor
         pendingIntent: PendingIntent?,
         autoCancelOnClick: Boolean
     ): NotificationCompat.Builder {
-        val notificationBuilder = NotificationCompat.Builder(context!!, "1")
+        // Use standard notification channel (like WhatsApp)
+        val channelId = when (pushMessage.type) {
+            TYPE_CHAT, TYPE_ROOM, TYPE_RECORDING, TYPE_REMINDER, TYPE_ADMIN_NOTIFICATIONS, TYPE_REMOTE_TALK_SHARE ->
+                NotificationUtils.NotificationChannels.NOTIFICATION_CHANNEL_MESSAGES_V4.name
+            TYPE_CALL ->
+                NotificationUtils.NotificationChannels.NOTIFICATION_CHANNEL_CALLS_V4.name
+            else ->
+                NotificationUtils.NotificationChannels.NOTIFICATION_CHANNEL_MESSAGES_V4.name
+        }
+        
+        val notificationBuilder = NotificationCompat.Builder(context!!, channelId)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setCategory(category)
             .setLargeIcon(getLargeIcon())
@@ -590,8 +628,12 @@ class NotificationWorker(context: Context, workerParams: WorkerParameters) : Wor
         }
 
         notificationBuilder.setContentIntent(pendingIntent)
-        val groupName = signatureVerification.user!!.id.toString() + "@" + pushMessage.id
-        notificationBuilder.setGroup(calculateCRC32(groupName).toString())
+        
+        // Use unique notification ID for each message to prevent grouping
+        // This ensures every notification plays sound (WhatsApp-style)
+        val uniqueGroup = "talk_msg_${System.currentTimeMillis()}_${pushMessage.timestamp}"
+        notificationBuilder.setGroup(uniqueGroup)
+        
         return notificationBuilder
     }
 

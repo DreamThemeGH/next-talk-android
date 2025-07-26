@@ -37,6 +37,7 @@ import com.nextcloud.talk.models.json.conversations.RoomOverall
 import com.nextcloud.talk.users.UserManager
 import com.nextcloud.talk.utils.ApiUtils
 import com.nextcloud.talk.utils.ClosedInterfaceImpl
+import com.nextcloud.talk.utils.NotificationUtils
 import com.nextcloud.talk.utils.SecurityUtils
 import com.nextcloud.talk.utils.bundle.BundleKeys
 import com.nextcloud.talk.utils.bundle.BundleKeys.KEY_ROOM_TOKEN
@@ -85,10 +86,25 @@ class MainActivity :
         NextcloudTalkApplication.sharedApplication!!.componentApplication.inject(this)
 
         setSupportActionBar(binding.toolbar)
+        
+        // Force recreate notification channels after APK update
+        ensureNotificationChannelsExist()
 
         handleIntent(intent)
 
         onBackPressedDispatcher.addCallback(this, onBackPressedCallback)
+    }
+    
+    /**
+     * Ensure notification channels exist - fixes issue with missing channels after APK update
+     */
+    private fun ensureNotificationChannelsExist() {
+        try {
+            NotificationUtils.registerNotificationChannels(this, appPreferences)
+            Log.d(TAG, "Notification channels recreated successfully")
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to recreate notification channels", e)
+        }
     }
 
     fun lockScreenIfConditionsApply() {

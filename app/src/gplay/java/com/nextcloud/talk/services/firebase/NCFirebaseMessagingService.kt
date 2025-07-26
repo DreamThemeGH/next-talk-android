@@ -36,7 +36,7 @@ class NCFirebaseMessagingService : FirebaseMessagingService() {
     }
 
     override fun onMessageReceived(remoteMessage: RemoteMessage) {
-        Log.d(TAG, "onMessageReceived")
+        Log.d(TAG, "onMessageReceived - IMMEDIATE PROCESSING")
         sharedApplication!!.componentApplication.inject(this)
 
         Log.d(TAG, "remoteMessage.priority: " + remoteMessage.priority)
@@ -47,14 +47,22 @@ class NCFirebaseMessagingService : FirebaseMessagingService() {
         val signature = data[KEY_NOTIFICATION_SIGNATURE]
 
         if (!subject.isNullOrEmpty() && !signature.isNullOrEmpty()) {
+            Log.d(TAG, "Processing notification immediately with high priority")
+            
             val messageData = Data.Builder()
                 .putString(BundleKeys.KEY_NOTIFICATION_SUBJECT, subject)
                 .putString(BundleKeys.KEY_NOTIFICATION_SIGNATURE, signature)
                 .build()
-            val notificationWork =
-                OneTimeWorkRequest.Builder(NotificationWorker::class.java).setInputData(messageData)
-                    .build()
-            WorkManager.getInstance().enqueue(notificationWork)
+                
+            val notificationWork = OneTimeWorkRequest.Builder(NotificationWorker::class.java)
+                .setInputData(messageData)
+                .setExpedited(androidx.work.OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST) // High priority
+                .build()
+                
+            WorkManager.getInstance(this).enqueue(notificationWork)
+            Log.d(TAG, "Notification work enqueued with high priority")
+        } else {
+            Log.w(TAG, "Invalid notification data: subject or signature is empty")
         }
     }
 
@@ -70,7 +78,7 @@ class NCFirebaseMessagingService : FirebaseMessagingService() {
         val pushRegistrationWork = OneTimeWorkRequest.Builder(PushRegistrationWorker::class.java)
             .setInputData(data)
             .build()
-        WorkManager.getInstance().enqueue(pushRegistrationWork)
+        WorkManager.getInstance(this).enqueue(pushRegistrationWork)
     }
 
     companion object {

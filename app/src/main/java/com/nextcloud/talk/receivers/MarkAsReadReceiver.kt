@@ -19,6 +19,7 @@ import com.nextcloud.talk.data.user.model.User
 import com.nextcloud.talk.models.json.generic.GenericOverall
 import com.nextcloud.talk.users.UserManager
 import com.nextcloud.talk.utils.ApiUtils
+import com.nextcloud.talk.utils.NotificationUtils
 import com.nextcloud.talk.utils.bundle.BundleKeys.KEY_INTERNAL_USER_ID
 import com.nextcloud.talk.utils.bundle.BundleKeys.KEY_MESSAGE_ID
 import com.nextcloud.talk.utils.bundle.BundleKeys.KEY_ROOM_TOKEN
@@ -85,6 +86,10 @@ class MarkAsReadReceiver : BroadcastReceiver() {
                 }
 
                 override fun onNext(genericOverall: GenericOverall) {
+                    // Mark conversation as read in our smart notification system
+                    if (roomToken != null) {
+                        NotificationUtils.markConversationAsRead(context, roomToken!!)
+                    }
                     cancelNotification(systemNotificationId!!)
                 }
 

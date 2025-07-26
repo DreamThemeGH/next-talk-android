@@ -149,6 +149,7 @@ class NextcloudTalkApplication :
 
         EmojiManager.install(GoogleEmojiProvider())
 
+        // Initialize notification channels with enhanced individual chat support
         NotificationUtils.registerNotificationChannels(applicationContext, appPreferences)
     }
 
@@ -175,6 +176,25 @@ class NextcloudTalkApplication :
             ExistingPeriodicWorkPolicy.REPLACE,
             periodicCapabilitiesUpdateWork
         )
+        
+        // Schedule repeat notifications worker (like WhatsApp)
+        initRepeatNotificationsWorker()
+    }
+    
+    private fun initRepeatNotificationsWorker() {
+        val repeatNotificationWork = PeriodicWorkRequest.Builder(
+            com.nextcloud.talk.services.RepeatNotificationWorker::class.java,
+            5, // Every 5 minutes
+            TimeUnit.MINUTES
+        ).build()
+        
+        WorkManager.getInstance(applicationContext).enqueueUniquePeriodicWork(
+            "RepeatNotificationsWork",
+            ExistingPeriodicWorkPolicy.REPLACE,
+            repeatNotificationWork
+        )
+        
+        Log.d(TAG, "Scheduled repeat notifications worker")
     }
 
     override fun onTerminate() {

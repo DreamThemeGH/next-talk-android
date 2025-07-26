@@ -117,6 +117,19 @@ How to translate with transifex:
     <string name="nc_settings_server_notification_app_not_installed_title">Server notifications app not installed</string>
     <string name="nc_settings_contact_admin_of">Please contact the administrator of</string>
 
+    <!-- Smart notification settings -->
+    <string name="nc_settings_smart_notifications_title">Smart Notifications</string>
+    <string name="nc_settings_smart_grouping_title">Smart grouping</string>
+    <string name="nc_settings_smart_grouping_description">Group notifications like WhatsApp - silence subsequent messages for a few minutes</string>
+    <string name="nc_settings_repeat_notifications_title">Repeat notifications</string>
+    <string name="nc_settings_repeat_notifications_description">Show reminder notifications for unread messages</string>
+    <string name="nc_settings_grouping_timeout_title">Grouping timeout</string>
+    <string name="nc_settings_grouping_timeout_description">How long to group notifications before playing sound again</string>
+    <string name="nc_settings_grouping_timeout_1_min">1 minute</string>
+    <string name="nc_settings_grouping_timeout_3_min">3 minutes</string>
+    <string name="nc_settings_grouping_timeout_5_min">5 minutes</string>
+    <string name="nc_settings_grouping_timeout_10_min">10 minutes</string>
+
     <string name="nc_settings_appearance">Appearance</string>
     <string name="nc_settings_theme_title">Theme</string>
     <string name="nc_settings_theme_key">theme</string>

@@ -30,6 +30,7 @@ import android.text.TextUtils
 import android.util.Log
 import android.view.View
 import android.view.WindowManager
+import android.widget.ArrayAdapter
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
@@ -223,6 +224,7 @@ class SettingsActivity :
 
         themeTitles()
         themeSwitchPreferences()
+        themeTextInputLayouts()
 
         if (openedByNotificationWarning) {
             scrollToNotificationCategory()
@@ -287,6 +289,7 @@ class SettingsActivity :
         setupNotificationSoundsSettings()
         setupNotificationPermissionSettings()
         setupServerNotificationAppCheck()
+        setupSmartNotificationSettings()
     }
 
     @SuppressLint("StringFormatInvalid")
@@ -496,6 +499,79 @@ class SettingsActivity :
         } else {
             binding.settingsServerNotificationAppWrapper.visibility = View.GONE
         }
+    }
+
+    private fun setupSmartNotificationSettings() {
+        val prefs = androidx.preference.PreferenceManager.getDefaultSharedPreferences(this)
+
+        // Setup smart grouping switch
+        binding.settingsSmartGroupingSwitch.isChecked =
+            prefs.getBoolean(NotificationUtils.PREF_SMART_GROUPING_ENABLED, true)
+
+        binding.settingsSmartGrouping.setOnClickListener {
+            val isChecked = binding.settingsSmartGroupingSwitch.isChecked
+            binding.settingsSmartGroupingSwitch.isChecked = !isChecked
+            prefs.edit()
+                .putBoolean(NotificationUtils.PREF_SMART_GROUPING_ENABLED, !isChecked)
+                .apply()
+        }
+
+        // Setup repeat notifications switch
+        binding.settingsRepeatNotificationsSwitch.isChecked =
+            prefs.getBoolean(NotificationUtils.PREF_REPEAT_NOTIFICATIONS, true)
+
+        binding.settingsRepeatNotifications.setOnClickListener {
+            val isChecked = binding.settingsRepeatNotificationsSwitch.isChecked
+            binding.settingsRepeatNotificationsSwitch.isChecked = !isChecked
+            prefs.edit()
+                .putBoolean(NotificationUtils.PREF_REPEAT_NOTIFICATIONS, !isChecked)
+                .apply()
+        }
+
+        // Setup grouping timeout dropdown
+        val timeoutValues = arrayOf("1", "3", "5", "10")
+        val timeoutLabels = arrayOf(
+            getString(R.string.nc_settings_grouping_timeout_1_min),
+            getString(R.string.nc_settings_grouping_timeout_3_min),
+            getString(R.string.nc_settings_grouping_timeout_5_min),
+            getString(R.string.nc_settings_grouping_timeout_10_min)
+        )
+
+        val currentTimeout = prefs.getInt(NotificationUtils.PREF_GROUPING_TIMEOUT_MINUTES,
+            NotificationUtils.DEFAULT_GROUPING_TIMEOUT_MINUTES)
+        val currentIndex = timeoutValues.indexOf(currentTimeout.toString()).coerceAtLeast(0)
+
+        binding.settingsGroupingTimeoutDropdown.setText(timeoutLabels[currentIndex])
+        binding.settingsGroupingTimeoutDropdown.setAdapter(
+            ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, timeoutLabels)
+        )
+
+        binding.settingsGroupingTimeoutDropdown.setOnItemClickListener { _, _, position, _ ->
+            val selectedTimeout = timeoutValues[position].toInt()
+            prefs.edit()
+                .putInt(NotificationUtils.PREF_GROUPING_TIMEOUT_MINUTES, selectedTimeout)
+                .apply()
+        }
+
+        // Update the grouping timeout setting visibility based on smart grouping state
+        updateGroupingTimeoutVisibility()
+
+        // Update visibility when smart grouping changes
+        binding.settingsSmartGrouping.setOnClickListener {
+            val isChecked = binding.settingsSmartGroupingSwitch.isChecked
+            binding.settingsSmartGroupingSwitch.isChecked = !isChecked
+            prefs.edit()
+                .putBoolean(NotificationUtils.PREF_SMART_GROUPING_ENABLED, !isChecked)
+                .apply()
+            updateGroupingTimeoutVisibility()
+        }
+    }
+
+    private fun updateGroupingTimeoutVisibility() {
+        val prefs = androidx.preference.PreferenceManager.getDefaultSharedPreferences(this)
+        val smartGroupingEnabled = prefs.getBoolean(NotificationUtils.PREF_SMART_GROUPING_ENABLED, true)
+
+        binding.settingsGroupingTimeout.visibility = if (smartGroupingEnabled) View.VISIBLE else View.GONE
     }
 
     private fun setupSourceCodeUrl() {
@@ -740,7 +816,9 @@ class SettingsActivity :
                 settingsPhoneBookIntegrationSwitch,
                 settingsReadPrivacySwitch,
                 settingsTypingStatusSwitch,
-                settingsProxyUseCredentialsSwitch
+                settingsProxyUseCredentialsSwitch,
+                settingsSmartGroupingSwitch,
+                settingsRepeatNotificationsSwitch
             ).forEach(viewThemeUtils.talk::colorSwitch)
         }
     }
@@ -749,11 +827,25 @@ class SettingsActivity :
         binding.run {
             listOf(
                 settingsNotificationsTitle,
+                settingsSmartNotificationsTitle,
                 settingsAboutTitle,
                 settingsAdvancedTitle,
                 settingsAppearanceTitle,
                 settingsPrivacyTitle
             ).forEach(viewThemeUtils.platform::colorTextView)
+        }
+    }
+
+    private fun themeTextInputLayouts() {
+        binding.run {
+            listOf(
+                settingsProxyHostLayout,
+                settingsProxyPortLayout,
+                settingsProxyUsernameLayout,
+                settingsProxyPasswordLayout,
+                settingsProxyChoiceLayout,
+                settingsGroupingTimeoutLayout
+            ).forEach(viewThemeUtils.material::colorTextInputLayout)
         }
     }
 
@@ -766,31 +858,48 @@ class SettingsActivity :
         binding.settingsProxyChoice.setOnItemClickListener { _, _, position, _ ->
             val entryVal = resources.getStringArray(R.array.proxy_type_descriptions)[position]
             appPreferences.proxyType = entryVal
+            showNotification("Proxy type updated to: $entryVal")
         }
 
         binding.settingsProxyHostEdit.setText(appPreferences.proxyHost)
         binding.settingsProxyHostEdit.setOnFocusChangeListener { _, hasFocus ->
             if (!hasFocus) {
-                appPreferences.proxyHost = binding.settingsProxyHostEdit.text.toString()
+                val newHost = binding.settingsProxyHostEdit.text.toString()
+                appPreferences.proxyHost = newHost
+                if (newHost.isNotEmpty()) {
+                    showNotification("Proxy host updated to: $newHost")
+                }
             }
         }
 
         binding.settingsProxyPortEdit.setText(appPreferences.proxyPort)
         binding.settingsProxyPortEdit.setOnFocusChangeListener { _, hasFocus ->
             if (!hasFocus) {
-                appPreferences.proxyPort = binding.settingsProxyPortEdit.text.toString()
+                val newPort = binding.settingsProxyPortEdit.text.toString()
+                appPreferences.proxyPort = newPort
+                if (newPort.isNotEmpty()) {
+                    showNotification("Proxy port updated to: $newPort")
+                }
             }
         }
         binding.settingsProxyUsernameEdit.setText(appPreferences.proxyUsername)
         binding.settingsProxyUsernameEdit.setOnFocusChangeListener { _, hasFocus ->
             if (!hasFocus) {
-                appPreferences.proxyUsername = binding.settingsProxyUsernameEdit.text.toString()
+                val newUsername = binding.settingsProxyUsernameEdit.text.toString()
+                appPreferences.proxyUsername = newUsername
+                if (newUsername.isNotEmpty()) {
+                    showNotification("Proxy username updated")
+                }
             }
         }
         binding.settingsProxyPasswordEdit.setText(appPreferences.proxyPassword)
         binding.settingsProxyPasswordEdit.setOnFocusChangeListener { _, hasFocus ->
             if (!hasFocus) {
-                appPreferences.proxyPassword = binding.settingsProxyPasswordEdit.text.toString()
+                val newPassword = binding.settingsProxyPasswordEdit.text.toString()
+                appPreferences.proxyPassword = newPassword
+                if (newPassword.isNotEmpty()) {
+                    showNotification("Proxy password updated")
+                }
             }
         }
 
@@ -1012,6 +1121,8 @@ class SettingsActivity :
             val isChecked = binding.settingsProxyUseCredentialsSwitch.isChecked
             binding.settingsProxyUseCredentialsSwitch.isChecked = !isChecked
             appPreferences.setProxyNeedsCredentials(!isChecked)
+            val statusMessage = if (!isChecked) "Proxy credentials enabled" else "Proxy credentials disabled"
+            showNotification(statusMessage)
         }
     }
 
@@ -1430,6 +1541,15 @@ class SettingsActivity :
             }
         }
     }
+
+    /**
+     * Shows a snackbar notification for settings changes
+     */
+    private fun showNotification(message: String) {
+        Snackbar.make(binding.root, message, Snackbar.LENGTH_SHORT).show()
+    }
+
+
 
     companion object {
         private val TAG = SettingsActivity::class.java.simpleName
