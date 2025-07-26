@@ -235,6 +235,10 @@
             android:theme="@style/AppTheme" />
 
         <activity
+            android:name=".settings.AudioSettingsActivity"
+            android:theme="@style/AppTheme" />
+
+        <activity
             android:name=".diagnose.DiagnoseActivity"
             android:theme="@style/AppTheme" />
 

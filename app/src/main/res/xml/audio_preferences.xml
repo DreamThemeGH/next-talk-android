@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ Nextcloud Talk - Android Client
+  ~ Enhanced Audio Settings
+  ~
+  ~ SPDX-FileCopyrightText: 2025 Talk Enhanced Team
+  ~ SPDX-License-Identifier: GPL-3.0-or-later
+  -->
+
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <!-- Audio Quality Section -->
+    <PreferenceCategory 
+        android:title="@string/nc_audio_sound_quality_title"
+        android:icon="@drawable/ic_baseline_headset_24">
+
+        <SwitchPreferenceCompat
+            android:key="noise_suppression_enabled"
+            android:title="@string/nc_audio_noise_suppression_title"
+            android:summary="@string/nc_audio_noise_suppression_summary"
+            android:defaultValue="true"
+            android:icon="@drawable/ic_baseline_noise_control_off_24"
+            app:iconSpaceReserved="true" />
+
+        <SwitchPreferenceCompat
+            android:key="echo_cancellation_enabled"
+            android:title="@string/nc_audio_echo_cancellation_title"
+            android:summary="@string/nc_audio_echo_cancellation_summary"
+            android:defaultValue="true"
+            android:icon="@drawable/ic_baseline_echo_24"
+            app:iconSpaceReserved="true" />
+
+        <SwitchPreferenceCompat
+            android:key="auto_gain_control_enabled"
+            android:title="@string/nc_audio_auto_gain_control_title"
+            android:summary="@string/nc_audio_auto_gain_control_summary"
+            android:defaultValue="true"
+            android:icon="@drawable/ic_baseline_auto_fix_high_24"
+            app:iconSpaceReserved="true" />
+
+    </PreferenceCategory>
+
+    <!-- Advanced Audio Section -->
+    <PreferenceCategory 
+        android:title="@string/nc_audio_additional_settings_title"
+        android:icon="@drawable/ic_baseline_tune_24">
+
+        <SwitchPreferenceCompat
+            android:key="high_pass_filter_enabled"
+            android:title="@string/nc_audio_high_pass_filter_title"
+            android:summary="@string/nc_audio_high_pass_filter_summary"
+            android:defaultValue="true"
+            android:icon="@drawable/ic_baseline_equalizer_24"
+            app:iconSpaceReserved="true" />
+
+        <SwitchPreferenceCompat
+            android:key="typing_noise_detection_enabled"
+            android:title="@string/nc_audio_typing_detection_title"
+            android:summary="@string/nc_audio_typing_detection_summary"
+            android:defaultValue="true"
+            android:icon="@drawable/ic_baseline_keyboard_24"
+            app:iconSpaceReserved="true" />
+
+    </PreferenceCategory>
+
+    <!-- Info Section -->
+    <PreferenceCategory android:title="Information">
+
+        <Preference
+            android:key="audio_info"
+            android:title="About audio settings"
+            android:summary="All settings apply to the next call. For optimal quality it's recommended to keep all options enabled."
+            android:icon="@drawable/ic_baseline_info_24"
+            android:selectable="false"
+            app:iconSpaceReserved="true" />
+
+        <Preference
+            android:key="audio_reset"
+            android:title="@string/nc_audio_reset_settings_title"
+            android:summary="@string/nc_audio_reset_settings_summary"
+            android:icon="@drawable/ic_baseline_info_24"
+            app:iconSpaceReserved="true" />
+
+    </PreferenceCategory>
+
+</PreferenceScreen>

@@ -142,6 +142,7 @@ import com.nextcloud.talk.viewmodels.CallRecordingViewModel.RecordingStartedStat
 import com.nextcloud.talk.viewmodels.CallRecordingViewModel.RecordingStartingState
 import com.nextcloud.talk.webrtc.PeerConnectionWrapper
 import com.nextcloud.talk.webrtc.PeerConnectionWrapper.PeerConnectionObserver
+import com.nextcloud.talk.webrtc.AudioProcessor
 import com.nextcloud.talk.webrtc.WebRTCUtils
 import com.nextcloud.talk.webrtc.WebRtcAudioManager
 import com.nextcloud.talk.webrtc.WebRtcAudioManager.AudioDevice
@@ -788,6 +789,12 @@ class CallActivity : CallBaseActivity() {
         // Create MediaConstraints - Will be useful for specifying video and audio constraints.
         audioConstraints = MediaConstraints()
         videoConstraints = MediaConstraints()
+        
+        // Apply enhanced audio processing constraints
+        val audioProcessor = AudioProcessor(applicationContext)
+        audioProcessor.applyAudioConstraints(audioConstraints!!)
+        Log.d(TAG, "Enhanced audio processing applied: ${audioProcessor.getAudioSettingsSummary()}")
+        
         localStream = peerConnectionFactory!!.createLocalMediaStream("NCMS")
 
         // Create and audio manager that will take care of audio routing,

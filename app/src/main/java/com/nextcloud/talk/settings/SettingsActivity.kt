@@ -70,6 +70,7 @@ import com.nextcloud.talk.jobs.ContactAddressBookWorker.Companion.deleteAll
 import com.nextcloud.talk.models.json.generic.GenericOverall
 import com.nextcloud.talk.models.json.userprofile.UserProfileOverall
 import com.nextcloud.talk.profile.ProfileActivity
+import com.nextcloud.talk.settings.AudioSettingsActivity
 import com.nextcloud.talk.ui.dialog.SetPhoneNumberDialogFragment
 import com.nextcloud.talk.users.UserManager
 import com.nextcloud.talk.utils.ApiUtils
@@ -434,6 +435,11 @@ class SettingsActivity :
                 Settings.EXTRA_CHANNEL_ID,
                 NotificationUtils.NotificationChannels.NOTIFICATION_CHANNEL_MESSAGES_V4.name
             )
+            startActivity(intent)
+        }
+
+        binding.settingsAudioEnhancements.setOnClickListener {
+            val intent = Intent(this, AudioSettingsActivity::class.java)
             startActivity(intent)
         }
     }

@@ -144,6 +144,30 @@ How to translate with transifex:
     <string name="nc_settings_theme_dark">Dark</string>
     <string name="nc_settings_dynamic_colors_title">Dynamic Colors</string>
     <string name="nc_settings_dynamic_colors_summary">Adapt app colors to your device wallpaper (Android 12+)</string>
+    
+    <!-- Audio Settings -->
+    <string name="nc_settings_audio_title">Audio</string>
+    <string name="nc_settings_audio_enhancements_title">Audio enhancements</string>
+    <string name="nc_settings_audio_enhancements_summary">Configure noise cancellation, echo cancellation, and other audio features</string>
+    <string name="nc_audio_settings_title">Audio Settings</string>
+    <string name="nc_audio_noise_suppression_title">Noise suppression</string>
+    <string name="nc_audio_noise_suppression_summary">Reduce background noise during calls</string>
+    <string name="nc_audio_echo_cancellation_title">Echo cancellation</string>
+    <string name="nc_audio_echo_cancellation_summary">Eliminate echo and feedback during calls</string>
+    <string name="nc_audio_auto_gain_control_title">Auto gain control</string>
+    <string name="nc_audio_auto_gain_control_summary">Automatically adjust microphone volume</string>
+    <string name="nc_audio_high_pass_filter_title">High pass filter</string>
+    <string name="nc_audio_high_pass_filter_summary">Filter out low frequency noise</string>
+    <string name="nc_audio_typing_detection_title">Typing noise detection</string>
+    <string name="nc_audio_typing_detection_summary">Detect and suppress keyboard typing sounds</string>
+    <string name="nc_audio_sound_quality_title">Sound Quality</string>
+    <string name="nc_audio_additional_settings_title">Additional Settings</string>
+    <string name="nc_audio_reset_settings_title">Reset to defaults</string>
+    <string name="nc_audio_reset_settings_summary">Restore all audio settings to their default values</string>
+    <string name="nc_audio_reset_confirmation_title">Reset Audio Settings</string>
+    <string name="nc_audio_reset_confirmation_message">Are you sure you want to reset all audio settings to their default values?</string>
+    <string name="nc_audio_settings_summary">Current settings: %1$s</string>
+    
     <string name="nc_settings_privacy">Privacy</string>
     <string name="nc_settings_screen_lock_title">Screen lock</string>
     <string name="nc_settings_screen_lock_desc">Lock %1$s with Android screen lock or supported biometric method</string>
